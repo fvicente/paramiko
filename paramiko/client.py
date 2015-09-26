@@ -74,6 +74,13 @@ class SSHClient (ClosingContextManager):
         self._policy = RejectPolicy()
         self._transport = None
         self._agent = None
+        self._pwd_available = True
+        try:
+            import pwd
+            # silent unused import warning
+            pwd = pwd
+        except:
+            self._pwd_available = False
 
     def load_system_host_keys(self, filename=None):
         """
@@ -528,25 +535,26 @@ class SSHClient (ClosingContextManager):
 
         if not two_factor:
             keyfiles = []
-            rsa_key = os.path.expanduser('~/.ssh/id_rsa')
-            dsa_key = os.path.expanduser('~/.ssh/id_dsa')
-            ecdsa_key = os.path.expanduser('~/.ssh/id_ecdsa')
-            if os.path.isfile(rsa_key):
-                keyfiles.append((RSAKey, rsa_key))
-            if os.path.isfile(dsa_key):
-                keyfiles.append((DSSKey, dsa_key))
-            if os.path.isfile(ecdsa_key):
-                keyfiles.append((ECDSAKey, ecdsa_key))
-            # look in ~/ssh/ for windows users:
-            rsa_key = os.path.expanduser('~/ssh/id_rsa')
-            dsa_key = os.path.expanduser('~/ssh/id_dsa')
-            ecdsa_key = os.path.expanduser('~/ssh/id_ecdsa')
-            if os.path.isfile(rsa_key):
-                keyfiles.append((RSAKey, rsa_key))
-            if os.path.isfile(dsa_key):
-                keyfiles.append((DSSKey, dsa_key))
-            if os.path.isfile(ecdsa_key):
-                keyfiles.append((ECDSAKey, ecdsa_key))
+            if self._pwd_available:
+                rsa_key = os.path.expanduser('~/.ssh/id_rsa')
+                dsa_key = os.path.expanduser('~/.ssh/id_dsa')
+                ecdsa_key = os.path.expanduser('~/.ssh/id_ecdsa')
+                if os.path.isfile(rsa_key):
+                    keyfiles.append((RSAKey, rsa_key))
+                if os.path.isfile(dsa_key):
+                    keyfiles.append((DSSKey, dsa_key))
+                if os.path.isfile(ecdsa_key):
+                    keyfiles.append((ECDSAKey, ecdsa_key))
+                # look in ~/ssh/ for windows users:
+                rsa_key = os.path.expanduser('~/ssh/id_rsa')
+                dsa_key = os.path.expanduser('~/ssh/id_dsa')
+                ecdsa_key = os.path.expanduser('~/ssh/id_ecdsa')
+                if os.path.isfile(rsa_key):
+                    keyfiles.append((RSAKey, rsa_key))
+                if os.path.isfile(dsa_key):
+                    keyfiles.append((DSSKey, dsa_key))
+                if os.path.isfile(ecdsa_key):
+                    keyfiles.append((ECDSAKey, ecdsa_key))
 
             if not look_for_keys:
                 keyfiles = []
